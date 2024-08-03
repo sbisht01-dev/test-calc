@@ -47,40 +47,52 @@ function XIRR(cfs, dts, guess) {
     return Math.round(xirr * 100) / 100;
 }
 
-let cashFlow = [-101.504,
-    2.225, 2.225, 2.225,
-    2.225, 2.225, 2.225, 2.225,
-    2.225, 2.225, 2.225, 2.225,
-    2.225, 2.225, 2.225, 2.225,
-    2.225, 2.225, 2.225, 2.225,
-    27.24076712, 26.68057534, 26.10820548, 25.5480137,
-];
 
-let dates = [new Date(2024, 6, 31), new Date(2024, 8, 13), new Date(2024, 12, 13),
-new Date(2025, 2, 13), new Date(2025, 5, 13), new Date(2025, 8, 13), new Date(2025, 11, 13),
-new Date(2026, 2, 13), new Date(2026, 5, 13), new Date(2026, 8, 13), new Date(2026, 11, 13),
-new Date(2027, 2, 13), new Date(2027, 5, 13), new Date(2027, 8, 13), new Date(2027, 11, 13),
-new Date(2028, 2, 13), new Date(2028, 5, 13), new Date(2028, 8, 13), new Date(2028, 11, 13),
-new Date(2029, 2, 13), new Date(2029, 5, 13), new Date(2029, 8, 13), new Date(2029, 11, 13),
-new Date(2030, 2, 13)
-];
-let currentDate = new Date(2024, 1, 14);
-let interestDate = 13;
-let interestMonth = 0;
+
+
+// let cashFlow = [
+//     -103.5421644,
+//     2.2225,
+//     2.2225,
+//     2.2225,
+//     2.2225,
+//     2.2225,
+//     2.2225,
+//     2.2225,
+//     2.2225,
+//     2.2225,
+//     2.2225,
+//     2.2225,
+//     2.2225,
+//     2.2225,
+//     2.2225,
+//     2.2225,
+//     2.2225,
+//     2.2225,
+//     2.2225,
+//     2.2225,
+//     27.24076712,
+//     26.68057534,
+//     26.10820548,
+//     25.5480137];
+// let dates = [
+//     new Date(2024,7,3), new Date(2024, 8, 13), new Date(2024, 11, 13), 
+//     new Date(2025, 2, 13), new Date(2025, 5, 13), new Date(2025, 8, 13), new Date(2025, 11, 13),
+//     new Date(2026, 2, 13), new Date(2026, 5, 13), new Date(2026, 8, 13), new Date(2026, 11, 13),
+//     new Date(2027, 2, 13), new Date(2027, 5, 13), new Date(2027, 8, 13), new Date(2027, 11, 13),
+//     new Date(2028, 2, 13), new Date(2028, 5, 13), new Date(2028, 8, 13), new Date(2028, 11, 13),
+//     new Date(2029, 2, 13), new Date(2029, 5, 13), new Date(2029, 8, 13), new Date(2029, 11, 13),new Date(2030, 11, 13)];
+
 let nextInterestPaymentDate;
-let monthAdder;
-let interestType = "q";
 
-function dateDifference() {
-    let date1 = dates[2];
-    let date2 = dates[3];
+function dateDifference(firstDate, secondDate) {
+    let date1 = firstDate;
+    let date2 = secondDate;
     let timeDiff = Math.abs(date2.getTime() - date1.getTime()) / (1000 * 60 * 24 * 60);
-    console.log(timeDiff);
+    return Math.floor(timeDiff);
 }
-function nextInterestDateQuaterly(interestMonth, interestDate, monthAdder) {
-    console.log("q");
+function nextInterestDateQuaterly(interestDate, currentDate) {
     if (currentDate > new Date(currentDate.getFullYear(), 11, interestDate) || currentDate < new Date(currentDate.getFullYear(), 2, interestDate)) {
-    
         // ****************************************************************************************************************************after dec and before march
         nextInterestPaymentDate = new Date(currentDate.getFullYear() + 1, 2, interestDate);
         return nextInterestPaymentDate;
@@ -102,11 +114,11 @@ function nextInterestDateQuaterly(interestMonth, interestDate, monthAdder) {
         // ****************************************************************************************************************************after  march and before  june
         nextInterestPaymentDate = new Date(currentDate.getFullYear(), 5, interestDate);
         return nextInterestPaymentDate;
-        
+
     }
 }
 
-function createList(array, divName, parentDiv) {
+function createListCF(array, divName, parentDiv) {
     let attachTo = document.getElementById(parentDiv);
     array.forEach(el => {
         let newDiv = document.createElement("div");
@@ -116,23 +128,114 @@ function createList(array, divName, parentDiv) {
     });
 }
 
-dateDifference();
-if (interestType == "q") {
-    //quaterly
-    let nextDateOfInterest = nextInterestDateQuaterly(interestDate);
-    console.log(nextDateOfInterest);
-} else if (interestType == "a") {
-    // anually
-} else if (interestType == "m") {
-    //monthly
-} else if (interestType == "h") {
-    //half yearly
+function createListDate(array, divName, parentDiv) {
+    let attachTo = document.getElementById(parentDiv);
+    array.forEach(el => {
+        let newDiv = document.createElement("div");
+        newDiv.textContent = `${el.getDate()}` +" -"+` ${el.getMonth()+1}` +" -"+` ${el.getFullYear()}`;
+        newDiv.classList.add(`${divName}`);
+        attachTo.appendChild(newDiv);
+    });
 }
 
-createList(cashFlow, "rate", "cashflows");
-createList(dates, "date", "dates");
-let cal = XIRR(cashFlow,
-    dates, 0.01);
 
-let yield = document.getElementById('xirr');
-yield.innerText = `${cal}`;
+function generateInterestPaymentDates(interestDate, maturityDate, currentDate) {
+    let nextPaymentDate = nextInterestDateQuaterly(interestDate.getDate(), currentDate);
+    let interestPaymentDates = [new Date(), nextInterestPaymentDate];
+    while (nextPaymentDate <= maturityDate) {
+        nextPaymentDate = new Date(nextPaymentDate.getFullYear(), nextPaymentDate.getMonth() + 3, nextPaymentDate.getDate());
+        interestPaymentDates.push(new Date(nextPaymentDate));
+    }
+    return interestPaymentDates;
+}
+let inputPrice = document.getElementById('price');
+
+let price = 102.3;
+inputPrice.addEventListener('input', () => {
+    price = inputPrice.value;
+    console.log(price);
+});
+
+let inputCR = document.getElementById('couponrate');
+let couponRate = 8.89;
+inputCR.addEventListener('input', () => {
+    couponRate = inputCR.value;
+    console.log(couponRate);
+    quarterlyFunction();
+})
+quarterlyFunction();
+const frequencySelect = document.getElementById('frequency');
+
+frequencySelect.addEventListener('change', () => {
+    const selectedFrequency = frequencySelect.value;
+
+    switch (selectedFrequency) {
+        case 'quarterly':
+
+            quarterlyFunction();
+            break;
+        case 'annually':
+            annuallyFunction();
+            break;
+        case 'monthly':
+            monthlyFunction();
+            break;
+        case 'halfyearly':
+            halfyearlyFunction();
+            break;
+        default:
+            console.error('Invalid frequency selected');
+    }
+});
+
+
+function quarterlyFunction() {
+    console.log('Quarterly selected');
+    const interestDate = new Date(2024, 2, 13);
+    const maturityDate = new Date(2030, 2, 13);
+    const currentDate = new Date();
+    let numberOfRedemptions = 4;
+    let cashFlow = [];
+    const interestPaymentDates = generateInterestPaymentDates(interestDate, maturityDate, currentDate);
+    interestPaymentDates.splice(-1, 1);
+    // console.log(interestPaymentDates);
+    let lastInterestPaymentDate = new Date(interestPaymentDates[1].getFullYear(), interestPaymentDates[1].getMonth() - 3, interestPaymentDates[1].getDate())
+    let dayDiff = dateDifference(new Date(), lastInterestPaymentDate);
+    
+    let accruedInterest = (100 * couponRate * dayDiff / 365) / 100;
+
+    cashFlow[0] = (-price - accruedInterest);
+    for (let i = 1; i < (interestPaymentDates.length - numberOfRedemptions); i++) {
+        cashFlow[i] = couponRate / numberOfRedemptions;
+       
+    }
+    let percentage = 100
+    for (let i = interestPaymentDates.length - 4; i < (interestPaymentDates.length); i++) {
+        cfDateDiff = dateDifference(interestPaymentDates[i], interestPaymentDates[i - 1]);
+        cashFlow[i] = 25 + ((percentage / 100) * couponRate * (cfDateDiff) / 365);
+        percentage = percentage - 25;
+    }
+
+
+    let ytm = XIRR(cashFlow, interestPaymentDates, 0.01);
+    console.log(ytm);
+
+    createListCF(cashFlow, "rate", "cashflows");
+    createListDate(interestPaymentDates, "date", "dates");
+ 
+    let yield = document.getElementById('xirr');
+    yield.innerText = `${ytm}`;
+
+}
+
+function annuallyFunction() {
+    console.log('Annually selected');
+}
+
+function monthlyFunction() {
+    console.log('Monthly selected');
+}
+
+function halfyearlyFunction() {
+    console.log('Half-yearly selected');
+}
